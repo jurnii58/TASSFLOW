@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registrar Empresa - Tassflow</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #0a84ff;
+            --secondary-color: #30b0c0;
+            --accent-color: #ff453a;
+            --success-color: #30d158;
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --glass-bg: rgba(20, 20, 30, 0.5);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+            background: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2560&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover;
+            background-color: #0f0f23;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            color: var(--text-primary);
+            padding: 20px;
+        }
+
+        .registro-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(30px);
+            border: 1px solid var(--glass-border);
+            padding: 50px 40px;
+            border-radius: 28px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.1);
+            width: 100%;
+            max-width: 480px;
+            animation: cardAppear 0.6s ease-out;
+        }
+
+        @keyframes cardAppear {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .registro-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .registro-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .registro-header h1 i {
+            font-size: 28px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .registro-header p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+
+        .registro-subtitle {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .form-section {
+            margin-bottom: 35px;
+        }
+
+        .form-section-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-section-title i {
+            font-size: 14px;
+        }
+
+        .input-wrapper {
+            margin-bottom: 18px;
+        }
+
+        .input-wrapper label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 15px;
+            font-size: 16px;
+            color: var(--primary-color);
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="email"] {
+            width: 100%;
+            padding: 14px 15px 14px 45px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--text-primary);
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        input[type="email"]:focus {
+            border-color: var(--primary-color);
+            background: rgba(10, 132, 255, 0.1);
+            box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.1);
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .password-requirements {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            border-left: 3px solid var(--warning-color);
+        }
+
+        .password-requirements strong {
+            color: var(--text-primary);
+        }
+
+        .btn-register {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            color: white;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            transition: all 0.3s;
+            margin-bottom: 20px;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-register:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(10, 132, 255, 0.3);
+        }
+
+        .btn-register:active {
+            transform: translateY(0);
+        }
+
+        .login-link {
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .login-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .login-link a:hover {
+            color: var(--secondary-color);
+        }
+
+        .error-msg {
+            background: rgba(255, 69, 58, 0.15);
+            color: #ff453a;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 69, 58, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .error-msg i {
+            font-size: 16px;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .success-highlight {
+            background: linear-gradient(135deg, rgba(48, 209, 88, 0.1), rgba(48, 209, 88, 0.05));
+            border-left: 4px solid var(--success-color);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 15px;
+                height: auto;
+                min-height: 100vh;
+                justify-content: flex-start;
+                padding-top: 20px;
+            }
+
+            .registro-container {
+                padding: 20px 15px;
+                border-radius: 16px;
+                max-width: 100%;
+                margin-bottom: 20px;
+            }
+            
+            .registro-header {
+                margin-bottom: 25px;
+            }
+
+            .registro-header h1 {
+                font-size: 22px;
+                gap: 8px;
+            }
+
+            .registro-header h1 i {
+                font-size: 22px;
+            }
+
+            .registro-header p {
+                font-size: 12px;
+            }
+
+            .registro-subtitle {
+                font-size: 11px;
+            }
+
+            .form-section {
+                margin-bottom: 20px;
+            }
+
+            .form-section-title {
+                font-size: 11px;
+                margin-bottom: 12px;
+                gap: 6px;
+            }
+
+            .form-section-title i {
+                font-size: 12px;
+            }
+
+            .input-wrapper {
+                margin-bottom: 14px;
+            }
+
+            .input-wrapper label {
+                font-size: 12px;
+                margin-bottom: 6px;
+            }
+
+            .input-group i {
+                left: 12px;
+                font-size: 14px;
+            }
+
+            input[type="text"],
+            input[type="password"] {
+                padding: 12px 12px 12px 38px;
+                font-size: 14px;
+                border-radius: 10px;
+            }
+
+            .password-requirements {
+                font-size: 11px;
+                padding: 8px;
+                margin-top: 6px;
+                border-left-width: 2px;
+            }
+
+            .btn-register {
+                padding: 13px;
+                font-size: 13px;
+                margin-bottom: 15px;
+                border-radius: 10px;
+            }
+
+            .success-highlight {
+                padding: 10px;
+                font-size: 11px;
+                margin-bottom: 15px;
+                border-left-width: 3px;
+            }
+
+            .error-msg {
+                padding: 10px;
+                font-size: 12px;
+                margin-bottom: 15px;
+                gap: 6px;
+            }
+
+            .error-msg i {
+                font-size: 14px;
+            }
+
+            .login-link {
+                font-size: 12px;
+            }
+
+            .login-link a {
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 320px) {
+            body {
+                padding: 10px;
+                padding-top: 15px;
+            }
+
+            .registro-container {
+                padding: 15px 12px;
+                border-radius: 12px;
+            }
+
+            .registro-header h1 {
+                font-size: 20px;
+            }
+
+            .input-wrapper label {
+                font-size: 11px;
+            }
+
+            input[type="text"],
+            input[type="password"] {
+                padding: 11px 11px 11px 35px;
+                font-size: 13px;
+            }
+
+            .btn-register {
+                padding: 12px;
+                font-size: 12px;
+            }
+
+            .password-requirements {
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="registro-container">
+        <div class="registro-header">
+            <h1>
+                <i class="fas fa-rocket"></i>
+                Tassflow
+            </h1>
+            <p>Crea tu espacio de trabajo</p>
+            <div class="registro-subtitle">Sistema de Carga Mental</div>
+        </div>
+
+        {% if error %}
+            <div class="error-msg">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>{{ error }}</span>
+            </div>
+        {% endif %}
+
+        <div class="success-highlight">
+            <i class="fas fa-info-circle"></i> Completa este formulario para crear tu empresa y acceso administrativo.
+        </div>
+
+        <form method="POST" action="{{ url_for('auth.registro_empresa') }}">
+            <!-- DATOS DE LA EMPRESA -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="fas fa-building"></i>
+                    Tu Empresa
+                </div>
+                
+                <div class="input-wrapper">
+                    <label for="nombre_empresa">Nombre comercial</label>
+                    <div class="input-group">
+                        <i class="fas fa-store"></i>
+                        <input type="text" 
+                               id="nombre_empresa" 
+                               name="nombre_empresa" 
+                               placeholder="Ej: Tech Innovations Inc." 
+                               required 
+                               autocomplete="off">
+                    </div>
+                </div>
+            </div>
+
+            <!-- DATOS DEL ADMINISTRADOR -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="fas fa-user-tie"></i>
+                    Cuenta Administrativo
+                </div>
+                
+                <div class="input-wrapper">
+                    <label for="nombre_usuario">Nombre de usuario</label>
+                    <div class="input-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" 
+                               id="nombre_usuario" 
+                               name="nombre_usuario" 
+                               placeholder="Tu nombre de usuario único" 
+                               required 
+                               autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="input-wrapper">
+                    <label for="contrasena">Contraseña de acceso</label>
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" 
+                               id="contrasena" 
+                               name="contrasena" 
+                               placeholder="Mínimo 8 caracteres" 
+                               required>
+                    </div>
+                    <div class="password-requirements">
+                        <strong>Requisitos:</strong> 8+ caracteres, 1 mayúscula, 1 número, 1 símbolo (@$!%*?&)
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-register">
+                <i class="fas fa-check-circle"></i> Crear tu Espacio
+            </button>
+        </form>
+
+        <div class="login-link">
+            ¿Ya tienes una cuenta? 
+            <a href="{{ url_for('auth.login') }}">Inicia sesión aquí</a>
+        </div>
+    </div>
+</body>
+</html>

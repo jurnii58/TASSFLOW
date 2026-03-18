@@ -1,0 +1,169 @@
+/* ===================================================
+   TASSFLOW - CHAT (MAC GLASS DARK MODE)
+   =================================================== */
+
+:root {
+    --glass-bg: rgba(20, 20, 20, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --ios-blue: #0a84ff;
+    --text-main: #ffffff;
+    --text-muted: rgba(255, 255, 255, 0.5);
+}
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    /* Mismo fondo de montaña como todo el sistema */
+    background: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2560&auto=format&fit=crop') no-repeat center center fixed;
+    background-size: cover;
+    background-color: #0f0f23;
+    background-attachment: fixed;
+    color: var(--text-main);
+}
+
+.chat-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 20px;
+    background: rgba(15, 15, 15, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--glass-border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.chat-header a {
+    color: var(--ios-blue);
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.chat-container {
+    padding: 20px;
+    /* Ajuste de altura para que el input no tape mensajes */
+    height: calc(100vh - 160px);
+    overflow-y: auto;
+}
+
+.chat-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* BURBUJAS DE CRISTAL */
+.mensaje {
+    max-width: 75%;
+    padding: 12px 16px;
+    border-radius: 20px;
+    font-size: 15px;
+    line-height: 1.4;
+    position: relative;
+    word-wrap: break-word;
+}
+
+/* Tus mensajes (Azul vibrante con glow) */
+.mensaje.usuario {
+    background: var(--ios-blue);
+    color: white;
+    margin-left: auto;
+    border-bottom-right-radius: 6px;
+    box-shadow: 0 4px 15px rgba(10, 132, 255, 0.3);
+}
+
+/* Mensajes de otros (Cristal translúcido) */
+.mensaje.admin {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    color: white;
+    margin-right: auto;
+    border-bottom-left-radius: 6px;
+}
+
+.mensaje img.chat-img {
+    width: 100%;
+    border-radius: 12px;
+    margin-top: 8px;
+}
+
+.archivo {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0,0,0,0.3);
+    padding: 8px 12px;
+    border-radius: 12px;
+    margin-top: 8px;
+    font-size: 13px;
+    color: white;
+    text-decoration: none;
+    border: 1px solid var(--glass-border);
+}
+
+.hora {
+    font-size: 10px;
+    opacity: .5;
+    display: block;
+    margin-top: 6px;
+    text-align: right;
+}
+
+/* INPUT INFERIOR (ESTILO OSCURO) */
+.chat-input {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px 30px; /* Espacio extra para móviles */
+    background: rgba(15, 15, 15, 0.8);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--glass-border);
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.chat-input input[type="text"] {
+    flex: 1;
+    border-radius: 25px;
+    padding: 12px 18px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--glass-border);
+    color: white;
+    outline: none;
+    font-size: 16px; /* Evita zoom automático en iPhone */
+}
+
+.chat-input input[type="text"]::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.chat-input button {
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    background: var(--ios-blue);
+    color: white;
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.chat-input button:active {
+    transform: scale(0.9);
+}
+
+.clip {
+    font-size: 22px;
+    cursor: pointer;
+    color: var(--text-muted);
+}

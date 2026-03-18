@@ -1,0 +1,168 @@
+/* ======================
+   VARIABLES iOS
+====================== */
+:root {
+    --bg: #f2f2f7;
+    --card: #ffffff;
+    --primary: #007aff;
+    --success: #34c759;
+    --danger: #ff3b30;
+    --text: #1c1c1e;
+    --muted: #8e8e93;
+}
+
+/* ======================
+   GLOBAL
+====================== */
+body {
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "San Francisco",
+                 "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text);
+}
+
+/* ======================
+   CARDS
+====================== */
+.card {
+    background: var(--card);
+    border-radius: 18px;
+    box-shadow: 0 10px 25px rgba(0,0,0,.08);
+    border: none;
+}
+
+/* ======================
+   HEADER
+====================== */
+.header {
+    background: var(--card);
+    color: var(--text);
+    border-bottom: 1px solid #e5e5ea;
+}
+
+/* ======================
+   STATS
+====================== */
+.stat {
+    background: var(--card);
+    border-radius: 16px;
+}
+
+/* ======================
+   INPUTS
+====================== */
+input, select, textarea {
+    background: #f2f2f7;
+    border: none;
+    border-radius: 14px;
+    padding: 12px;
+    font-size: 15px;
+}
+
+/* ======================
+   BOTONES
+====================== */
+button, .btn-chat {
+    background: var(--primary);
+    border-radius: 14px;
+    padding: 12px;
+    color: white;
+    font-weight: 500;
+    border: none;
+}
+
+/* ======================
+   LINKS
+====================== */
+a {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+/* ======================
+   LISTAS
+====================== */
+.lista-tareas li,
+.lista-usuarios li {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 12px;
+    margin-bottom: 10px;
+}
+
+/* ======================
+   CHAT
+====================== */
+.chat-card {
+    border-radius: 18px;
+}
+
+.mensaje {
+    max-width: 75%;
+    padding: 10px 14px;
+    border-radius: 18px;
+    margin-bottom: 8px;
+}
+
+.mensaje.usuario {
+    background: var(--primary);
+    color: white;
+    margin-left: auto;
+}
+
+.mensaje.admin {
+    background: #e5e5ea;
+    color: black;
+}
+/* ======================
+   BOTONES iOS REALES
+====================== */
+
+.ios-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 16px;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+/* Botón principal (azul iOS) */
+.ios-btn.primary {
+    background: var(--primary);
+    color: white;
+}
+
+.ios-btn.primary:hover {
+    opacity: 0.9;
+}
+
+/* Botón secundario (gris claro iOS) */
+.ios-btn.secondary {
+    background: #e5e5ea;
+    color: var(--text);
+}
+
+/* Botón peligro (rojo iOS) */
+.ios-btn.danger {
+    background: var(--danger);
+    color: white;
+}
+
+/* Botón fantasma (tipo link iOS) */
+.ios-btn.ghost {
+    background: transparent;
+    color: var(--primary);
+    padding: 8px 10px;
+}
+
+/* Botón chat */
+.ios-btn.chat {
+    background: var(--primary);
+    color: white;
+    border-radius: 12px;
+}

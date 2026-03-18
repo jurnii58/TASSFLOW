@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat - Tassflow</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Estilos Premium Glass de tu diseño original */
+        :root {
+            --glass-bg: rgba(20, 20, 30, 0.5);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --primary-color: #0a84ff;
+            --primary-hover: #0070e0;
+            --border-radius-lg: 24px;
+            --border-radius-md: 16px;
+            --border-radius-sm: 8px;
+            --spacing-xs: 8px;
+            --spacing-sm: 12px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+        }
+
+        body { 
+            margin: 0; 
+            font-family: -apple-system, sans-serif; 
+            background: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2560&auto=format&fit=crop'); 
+            background-size: cover; 
+            background-attachment: fixed;
+            background-color: #0f0f23;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .chat-wrapper, .message-content {
+            background: var(--glass-bg) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 1px solid var(--glass-border) !important;
+        }
+
+        .header { 
+            background: rgba(15, 15, 15, 0.7); 
+            backdrop-filter: blur(20px); 
+            padding: 20px 30px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        /* Reutilizamos tus animaciones y estilos de burbujas */
+        .chat-wrapper {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 120px);
+            max-width: 800px;
+            margin: 20px auto;
+            border-radius: var(--border-radius-lg);
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: var(--spacing-lg);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+
+        .message { display: flex; flex-direction: column; max-width: 75%; animation: messageSlideIn 0.3s ease-out; }
+        .message-own { align-self: flex-end; align-items: flex-end; }
+        .message-other { align-self: flex-start; align-items: flex-start; }
+
+        @keyframes messageSlideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-content { padding: var(--spacing-md); border-radius: var(--border-radius-lg); position: relative; }
+        .message-own .message-content { background: var(--primary-color) !important; color: white; border-bottom-right-radius: var(--border-radius-sm); }
+        .message-other .message-content { color: white; border-bottom-left-radius: var(--border-radius-sm); }
+
+        .message-time { font-size: 0.7rem; opacity: 0.6; margin-top: 5px; }
+        
+        .message-input-wrapper { padding: var(--spacing-md) var(--spacing-lg); border-top: 1px solid var(--glass-border); }
+        .message-input { display: flex; align-items: center; gap: var(--spacing-md); background: rgba(0, 0, 0, 0.3); border: 1px solid var(--glass-border); padding: 8px 15px; border-radius: 50px; }
+        .message-input input { flex: 1; background: transparent; border: none; color: white; outline: none; padding: 10px 0; }
+        
+        .send-btn { background: var(--primary-color); border: none; width: 40px; height: 40px; border-radius: 50%; color: white; cursor: pointer; transition: 0.2s; }
+        .send-btn:hover { transform: scale(1.1); background: var(--primary-hover); }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-content">
+            <h2 style="margin:0; color:white;"><i class="fas fa-comments"></i> Chat Ejecutivo</h2>
+            <p style="margin:0; font-size: 13px; color: rgba(255,255,255,0.6);">{{ tarea.titulo }}</p>
+        </div>
+        <div class="header-actions">
+            <a href="javascript:history.back()" class="ios-btn primary" style="text-decoration: none; color: white; background: rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 10px; font-size: 13px;">
+                <i class="fas fa-chevron-left"></i> Volver
+            </a>
+        </div>
+    </header>
+
+    <div class="chat-wrapper">
+        <div class="chat-messages" id="chat-box">
+            {% for m in mensajes %}
+                <div class="message {% if m.usuario == session['usuario'] %}message-own{% else %}message-other{% endif %}">
+                    {% if m.usuario != session['usuario'] %}
+                        <div style="font-size: 11px; margin-bottom: 4px; color: var(--primary-color); font-weight: bold; text-transform: uppercase;">
+                            {{ m.usuario }}
+                        </div>
+                    {% endif %}
+
+                    <div class="message-content">
+                        <div class="message-text">{{ m.texto }}</div>
+
+                        {% if m.archivo %}
+                            <a href="{{ m.archivo.url }}" target="_blank" style="display: block; margin-top: 10px; color: #30d158; text-decoration: none; font-size: 12px; background: rgba(0,0,0,0.2); padding: 5px 10px; border-radius: 8px; border: 1px solid rgba(48, 209, 88, 0.3);">
+                                <i class="fas fa-paperclip"></i> {{ m.archivo.nombre }}
+                            </a>
+                        {% endif %}
+
+                        <div class="message-time">
+                            {% if m.fecha and m.fecha.strftime %}
+                                {{ m.fecha.strftime('%H:%M') }}
+                            {% else %}
+                                {{ m.fecha }}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="message-input-wrapper">
+            <form class="message-input" action="{{ url_for('chat.enviar_mensaje', tarea_id=tarea._id|string) }}" method="POST" enctype="multipart/form-data">
+                <label style="cursor: pointer; color: rgba(255,255,255,0.6);">
+                    <i class="fas fa-plus"></i>
+                    <input type="file" name="archivo" style="display: none;">
+                </label>
+
+                <input type="text" name="mensaje" placeholder="Escribe un mensaje corporativo..." required autocomplete="off">
+
+                <button type="submit" class="send-btn">
+                    <i class="fas fa-arrow-up"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Auto-scroll al fondo al cargar
+        const chatBox = document.getElementById("chat-box");
+        chatBox.scrollTop = chatBox.scrollHeight;
+    </script>
+</body>
+</html>

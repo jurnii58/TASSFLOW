@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mi Panel - Tassflow</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* ===================================================
+           TASSFLOW - USUARIO PANEL (KANBAN DARK MODE)
+           =================================================== */
+        :root {
+            --glass-bg: rgba(20, 20, 20, 0.55);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --ios-blue: #0a84ff;
+            --ios-green: #30d158;
+            --ios-red: #ff453a;
+            --ios-orange: #ff9f0a;
+            --text-main: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.6);
+        }
+
+        body {
+            margin: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+            background: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2560&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover; background-color: #0f0f23; color: var(--text-main); padding-bottom: 50px;
+        }
+
+        .header { background: rgba(15, 15, 15, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; border-bottom: 1px solid var(--glass-border); position: sticky; top: 0; z-index: 1000; }
+        .header h2 { margin: 0; font-size: 20px; font-weight: 600; }
+        .header-actions { display: flex; gap: 15px; align-items: center; }
+        .user-badge { background: rgba(255,255,255,0.1); padding: 6px 14px; border-radius: 20px; font-size: 13px; border: 1px solid var(--glass-border); }
+        .ios-btn { padding: 10px 15px; border-radius: 12px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; color: white; text-decoration: none; transition: 0.2s;}
+        .ios-btn:hover { opacity: 0.8; }
+        .ios-btn.primary { background: var(--ios-blue); }
+        .ios-btn.ghost { background: transparent; color: var(--ios-red); }
+
+        /* Formularios y Modales */
+        input[type="text"], select { width: 100%; padding: 12px 15px; margin-bottom: 15px; border-radius: 12px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: var(--text-main); font-size: 14px; box-sizing: border-box; outline: none; }
+        input::placeholder { color: rgba(255,255,255,0.4); }
+        select option { background: #1a1a1a; color: white; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 9999; opacity: 0; transition: opacity 0.3s ease; }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-box { background: rgba(30, 30, 30, 0.85); border: 1px solid var(--glass-border); padding: 30px; border-radius: 24px; max-width: 350px; width: 90%; text-align: center; }
+        .modal-overlay.active .modal-box { transform: translateY(0); }
+        .modal-box i.icon-main { font-size: 40px; margin-bottom: 15px; }
+        .modal-box h3 { margin: 0 0 10px 0; font-size: 20px; }
+        .modal-box p { color: var(--text-muted); font-size: 14px; margin-bottom: 20px; }
+        .modal-actions { display: flex; gap: 10px; justify-content: center;}
+
+        /* Progreso */
+        .progress-container { max-width: 1200px; margin: 30px auto; padding: 0 20px; text-align: center; }
+        .progress-bar-bg { background: rgba(255,255,255,0.1); border-radius: 20px; height: 12px; width: 100%; overflow: hidden; border: 1px solid var(--glass-border); margin-top: 10px;}
+        .progress-bar-fill { background: linear-gradient(90deg, var(--ios-blue), var(--ios-green)); height: 100%; transition: width 0.5s ease; }
+
+        /* ================= TABLERO KANBAN ================= */
+        .kanban-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; max-width: 1400px; margin: 30px auto; padding: 0 20px; align-items: start; }
+        
+        .kanban-column { background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 24px; display: flex; flex-direction: column; height: calc(100vh - 250px); min-height: 400px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); overflow: hidden; }
+        
+        .kanban-header { padding: 20px; border-bottom: 1px solid var(--glass-border); font-weight: bold; font-size: 16px; display: flex; justify-content: space-between; align-items: center; }
+        .kanban-header.pendientes i { color: var(--ios-red); }
+        .kanban-header.en-proceso i { color: var(--ios-orange); }
+        .kanban-header.completadas i { color: var(--ios-green); }
+        .badge-count { background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 12px; font-size: 12px; }
+
+        .kanban-dropzone { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; transition: background 0.3s; }
+        .kanban-dropzone.drag-over { background: rgba(255, 255, 255, 0.05); }
+
+        /* ================= TARJETA (CARD) DRAGGABLE ================= */
+        .task-card { background: rgba(30, 30, 30, 0.95); border: 1px solid var(--glass-border); padding: 18px; border-radius: 16px; cursor: grab; box-shadow: 0 5px 15px rgba(0,0,0,0.2); transition: transform 0.2s, box-shadow 0.2s; position: relative; }
+        .task-card:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
+        .task-card:active { cursor: grabbing; transform: scale(0.98); }
+        .task-card.dragging { opacity: 0.5; border: 2px dashed var(--ios-blue); }
+
+        .task-title { font-size: 15px; font-weight: bold; margin: 0 0 10px 0; color: var(--text-main); }
+        .task-desc { font-size: 12px; color: var(--text-muted); margin: 0 0 15px 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        .task-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px; }
+        
+        .badge-prioridad { padding: 4px 8px; border-radius: 8px; font-weight: bold; font-size: 10px; text-transform: uppercase; cursor: pointer; transition: 0.2s;}
+        .badge-prioridad:hover { opacity: 0.7; transform: scale(1.05);}
+        .badge-prioridad.alta { background: rgba(255, 69, 58, 0.2); color: var(--ios-red); }
+        .badge-prioridad.media { background: rgba(255, 159, 10, 0.2); color: var(--ios-orange); }
+        .badge-prioridad.baja { background: rgba(48, 209, 88, 0.2); color: var(--ios-green); }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+
+        /* ===== RESPONSIVE DESIGN ===== */
+        @media (max-width: 1024px) {
+            .kanban-board { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; padding: 0 15px; }
+            .kanban-column { height: calc(100vh - 280px); }
+        }
+
+        @media (max-width: 768px) {
+            body { padding-bottom: 40px; }
+
+            .header { padding: 15px; flex-direction: column; gap: 12px; }
+            .header h2 { font-size: 18px; }
+            .header-actions { flex-direction: column; width: 100%; gap: 10px; }
+            .user-badge { font-size: 12px; padding: 5px 10px; width: 100%; text-align: center; }
+
+            .kanban-board { grid-template-columns: repeat(auto-fit, minmax(100%, 1fr)); gap: 15px; margin: 20px auto; padding: 0 12px; }
+            .kanban-column { height: auto; min-height: 300px; }
+            .kanban-header { padding: 15px; font-size: 14px; }
+            .badge-count { font-size: 11px; }
+
+            .task-card { padding: 15px; }
+            .task-title { font-size: 14px; }
+            .task-desc { font-size: 11px; }
+            .task-footer { gap: 8px; }
+
+            .progress-container { padding: 0 12px; margin: 20px auto; }
+            .ios-btn { padding: 9px 12px; font-size: 12px; border-radius: 10px; }
+            
+            input[type="text"], select { padding: 11px; font-size: 13px; }
+            .modal-box { max-width: 90%; padding: 20px; }
+        }
+
+        @media (max-width: 480px) {
+            body { padding-bottom: 30px; }
+
+            .header { padding: 12px; }
+            .header h2 { font-size: 16px; }
+            .header-actions { flex-direction: column; gap: 8px; }
+            .user-badge { font-size: 11px; padding: 4px 8px; }
+
+            .kanban-board { gap: 12px; margin: 15px auto; padding: 0 10px; }
+            .kanban-column { height: auto; min-height: 250px; }
+            .kanban-header { padding: 12px; font-size: 13px; }
+            .kanban-dropzone { padding: 12px; gap: 10px; }
+
+            .task-card { padding: 12px; margin-bottom: 8px; }
+            .task-title { font-size: 13px; margin-bottom: 8px; }
+            .task-desc { font-size: 10px; margin-bottom: 12px; }
+            .task-footer { font-size: 11px; gap: 4px; }
+
+            .badge-prioridad { padding: 3px 6px; font-size: 9px; }
+
+            .progress-container { padding: 0 10px; margin: 15px auto; }
+            .progress-container h3 { font-size: 14px; }
+            .progress-container p { font-size: 11px; }
+
+            .ios-btn { padding: 8px 10px; font-size: 11px; border-radius: 9px; }
+            input[type="text"], select { padding: 10px; font-size: 12px; border-radius: 9px; }
+
+            .modal-box { max-width: 85%; padding: 15px; }
+        }
+
+        @media (max-width: 320px) {
+            .header { padding: 10px; }
+            .header h2 { font-size: 14px; }
+            .kanban-board { padding: 0 8px; }
+            .task-card { padding: 10px; }
+            .task-title { font-size: 12px; }
+            .ios-btn { padding: 7px 8px; font-size: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <h2><i class="fas fa-brain" style="margin-right: 8px; color: var(--ios-blue);"></i>Mi Espacio de Trabajo</h2>
+    <div class="header-actions">
+        <a href="{{ url_for('usuario.usuario_calendario') }}" class="ios-btn primary"><i class="fas fa-calendar-alt"></i> Calendario</a>
+        <a href="{{ url_for('usuario.mis_documentos') }}" class="ios-btn primary" style="background: var(--ios-orange);"><i class="fas fa-folder"></i> Documentos</a>
+        <span class="user-badge"><i class="fas fa-user" style="margin-right: 5px;"></i>{{ session["usuario"] }}</span>
+        <a href="{{ url_for('auth.logout') }}" class="ios-btn ghost">Cerrar sesión</a>
+    </div>
+</header>
+
+<div class="progress-container">
+    <h3 style="margin: 0 0 5px 0;">Tu Progreso: {{ progreso }}%</h3>
+    <p style="margin: 0; font-size: 13px; color: var(--text-muted);">Arrastra tus tareas hacia la derecha para completarlas.</p>
+    <div class="progress-bar-bg">
+        <div class="progress-bar-fill" style="width: {{ progreso }}%;"></div>
+    </div>
+</div>
+
+<div class="kanban-board">
+    
+    <div class="kanban-column">
+        <div class="kanban-header pendientes">
+            <span><i class="fas fa-inbox"></i> Pendientes</span>
+            <span class="badge-count" id="count-pendiente">0</span>
+        </div>
+        <div class="kanban-dropzone" data-estado="Pendiente">
+            {% for t in tareas if t.estado == "Pendiente" %}
+                <div class="task-card" draggable="true" data-id="{{ t._id|string }}">
+                    <h4 class="task-title">{{ t.titulo }}</h4>
+                    <p class="task-desc">{{ t.descripcion }}</p>
+                    <div class="task-footer">
+                        {% set prio = (t.prioridad | lower) if t.prioridad else 'media' %}
+                        <span class="badge-prioridad {{ prio }}" onclick="abrirModalPrioridad('{{ t._id|string }}', '{{ prio | capitalize }}')" title="Clic para cambiar prioridad">{{ prio }}</span>
+                        
+                        <div style="display: flex; gap: 10px;">
+                            <button type="button" onclick="abrirModalEditar('{{ t._id|string }}')" class="ios-btn ghost" style="padding: 0; font-size: 13px; color: var(--ios-orange);" title="Editar Tarea"><i class="fas fa-edit"></i></button>
+                            <button type="button" onclick="abrirModalDocumento('{{ t._id|string }}', '{{ t.titulo }}')" class="ios-btn ghost" style="padding: 0; font-size: 13px; color: var(--ios-orange);" title="Solicitar Documento"><i class="fas fa-file-upload"></i></button>
+                            <a href="{{ url_for('chat.ver_chat', tarea_id=t._id|string) }}" class="ios-btn ghost" style="padding: 0; font-size: 13px; color: var(--ios-blue);"><i class="fas fa-comments"></i></a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="kanban-column">
+        <div class="kanban-header en-proceso">
+            <span><i class="fas fa-spinner"></i> En Proceso</span>
+            <span class="badge-count" id="count-en-proceso">0</span>
+        </div>
+        <div class="kanban-dropzone" data-estado="En Proceso">
+            {% for t in tareas if t.estado == "En Proceso" %}
+                <div class="task-card" draggable="true" data-id="{{ t._id|string }}">
+                    <h4 class="task-title">{{ t.titulo }}</h4>
+                    <p class="task-desc">{{ t.descripcion }}</p>
+                    <div class="task-footer">
+                        {% set prio = (t.prioridad | lower) if t.prioridad else 'media' %}
+                        <span class="badge-prioridad {{ prio }}" onclick="abrirModalPrioridad('{{ t._id|string }}', '{{ prio | capitalize }}')" title="Clic para cambiar prioridad">{{ prio }}</span>
+                        <div style="display: flex; gap: 10px;">
+                            <button type="button" onclick="abrirModalEditar('{{ t._id|string }}')" class="ios-btn ghost" style="padding: 0; font-size: 13px; color: var(--ios-orange);" title="Editar Tarea"><i class="fas fa-edit"></i></button>
+                            <button type="button" onclick="abrirModalDocumento('{{ t._id|string }}', '{{ t.titulo }}')" class="ios-btn ghost" style="padding: 0; font-size: 13px; color: var(--ios-orange);" title="Solicitar Documento"><i class="fas fa-file-upload"></i></button>
+                            <a href="{{ url_for('chat.ver_chat', tarea_id=t._id|string) }}" class="ios-btn ghost" style="padding: 0; font-size: 13px; color: var(--ios-blue);"><i class="fas fa-comments"></i></a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="kanban-column">
+        <div class="kanban-header completadas">
+            <span><i class="fas fa-check-circle"></i> Completadas</span>
+            <span class="badge-count" id="count-completada">0</span>
+        </div>
+        <div class="kanban-dropzone" data-estado="Completada">
+            {% for t in tareas if t.estado == "Completada" %}
+                <div class="task-card" draggable="true" data-id="{{ t._id|string }}">
+                    <h4 class="task-title">{{ t.titulo }}</h4>
+                    <p class="task-desc">{{ t.descripcion }}</p>
+                    <div class="task-footer">
+                        {% set prio = (t.prioridad | lower) if t.prioridad else 'media' %}
+                        <span class="badge-prioridad {{ prio }}" style="opacity: 0.5;" onclick="abrirModalPrioridad('{{ t._id|string }}', '{{ prio | capitalize }}')">{{ prio }}</span>
+                        <div style="display: flex; gap: 10px;">
+                            <button type="button" onclick="abrirModalEditar('{{ t._id|string }}')" class="ios-btn ghost" style="padding: 0; font-size: 13px; color: var(--ios-orange);" title="Editar Tarea"><i class="fas fa-edit"></i></button>
+                            <button type="button" onclick="abrirModalDocumento('{{ t._id|string }}', '{{ t.titulo }}')" class="ios-btn ghost" style="padding: 0; font-size: 13px; color: var(--ios-orange);" title="Solicitar Documento"><i class="fas fa-file-upload"></i></button>
+                            <a href="{{ url_for('chat.ver_chat', tarea_id=t._id|string) }}" class="ios-btn ghost" style="padding: 0; font-size: 13px; color: var(--ios-blue);"><i class="fas fa-comments"></i></a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+<div id="modalPrioridad" class="modal-overlay">
+    <div class="modal-box">
+        <i class="fas fa-flag icon-main" style="color: var(--ios-orange);"></i>
+        <h3>Nivel de Carga Mental</h3>
+        <p>¿Qué nivel de prioridad o urgencia tiene esta tarea para ti?</p>
+        <form id="formPrioridad" method="POST" action="" style="display: flex; flex-direction: column; gap: 10px; text-align: left;">
+            <select name="prioridad" id="select-prioridad">
+                <option value="Baja">🟢 Baja (Poca Carga)</option>
+                <option value="Media">🟠 Media (Carga Normal)</option>
+                <option value="Alta">🔴 Alta (Sobrecarga / Urgente)</option>
+            </select>
+            <div class="modal-actions" style="margin-top: 10px;">
+                <button type="button" class="ios-btn secondary" style="background: rgba(255,255,255,0.1); color: white;" onclick="cerrarModal('modalPrioridad')">Cancelar</button>
+                <button type="submit" class="ios-btn primary" style="background: var(--ios-orange);">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="modalDocumento" class="modal-overlay">
+    <div class="modal-box">
+        <i class="fas fa-folder-open icon-main" style="color: var(--ios-blue);"></i>
+        <h3>Solicitar Documento</h3>
+        <p>Pedir un archivo para: <strong id="doc-tarea-titulo" style="color: var(--text-main);"></strong></p>
+        <form id="formDocumento" method="POST" action="" style="display: flex; flex-direction: column; gap: 5px; text-align: left;">
+            <input type="text" name="nombre_documento" placeholder="Ej: Reporte de gastos.pdf" required>
+            <input type="text" name="descripcion" placeholder="¿Para qué necesitas este documento?" required>
+            <div class="modal-actions" style="margin-top: 15px;">
+                <button type="button" class="ios-btn secondary" style="background: rgba(255,255,255,0.1); color: white;" onclick="cerrarModal('modalDocumento')">Cancelar</button>
+                <button type="submit" class="ios-btn primary">Solicitar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="modalEditar" class="modal-overlay">
+    <div class="modal-box" style="max-width: 420px; padding: 30px; text-align: center;">
+        <i class="fas fa-edit icon-main" style="color: var(--ios-orange);"></i>
+        <h3 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 600;">Editar Tarea</h3>
+        
+        <form id="formEditar" style="display: flex; flex-direction: column; gap: 15px; text-align: left;">
+            <div>
+                <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 8px; font-weight: 500;">Título de la tarea</label>
+                <input type="text" id="editarTitulo" name="titulo" placeholder="Título de la tarea" required style="margin-bottom: 0;">
+            </div>
+            
+            <div>
+                <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 8px; font-weight: 500;">Descripción</label>
+                <input type="text" id="editarDescripcion" name="descripcion" placeholder="Descripción de la tarea" required style="margin-bottom: 0;">
+            </div>
+            
+            <div>
+                <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 8px; font-weight: 500;">Reasignar Usuarios</label>
+                <div id="usuariosContainer" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-height: 150px; overflow-y: auto; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 12px; margin-bottom: 0;">
+                    <!-- Se llena con JavaScript -->
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button type="button" class="ios-btn" style="flex: 1; background: rgba(255,255,255,0.1); color: white;" onclick="cerrarModal('modalEditar')">Cancelar</button>
+                <button type="submit" class="ios-btn primary" style="flex: 1; background: var(--ios-orange);">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<script>
+    /* ================= LÓGICA DE DRAG & DROP Y CONEXIÓN AL BACKEND ================= */
+    document.addEventListener('DOMContentLoaded', () => {
+        const tarjetas = document.querySelectorAll('.task-card');
+        const dropzones = document.querySelectorAll('.kanban-dropzone');
+
+        actualizarContadores();
+
+        tarjetas.forEach(tarjeta => {
+            tarjeta.addEventListener('dragstart', () => {
+                tarjeta.classList.add('dragging');
+            });
+
+            tarjeta.addEventListener('dragend', () => {
+                tarjeta.classList.remove('dragging');
+                const columnaDestino = tarjeta.parentElement;
+                const nuevoEstado = columnaDestino.getAttribute('data-estado');
+                const tareaId = tarjeta.getAttribute('data-id');
+                
+                actualizarContadores();
+                guardarEnBaseDeDatos(tareaId, nuevoEstado);
+            });
+        });
+
+        dropzones.forEach(zone => {
+            zone.addEventListener('dragover', e => {
+                e.preventDefault(); 
+                zone.classList.add('drag-over');
+                const tarjetaDespues = obtenerTarjetaDespues(zone, e.clientY);
+                const tarjetaMovida = document.querySelector('.dragging');
+                if (tarjetaDespues == null) {
+                    zone.appendChild(tarjetaMovida);
+                } else {
+                    zone.insertBefore(tarjetaMovida, tarjetaDespues);
+                }
+            });
+
+            zone.addEventListener('dragleave', () => { zone.classList.remove('drag-over'); });
+            zone.addEventListener('drop', () => { zone.classList.remove('drag-over'); });
+        });
+
+        function obtenerTarjetaDespues(container, y) {
+            const tarjetasEstaticas = [...container.querySelectorAll('.task-card:not(.dragging)')];
+            return tarjetasEstaticas.reduce((masCercana, child) => {
+                const caja = child.getBoundingClientRect();
+                const offset = y - caja.top - caja.height / 2;
+                if (offset < 0 && offset > masCercana.offset) return { offset: offset, element: child }
+                else return masCercana;
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
+        function actualizarContadores() {
+            document.getElementById('count-pendiente').innerText = document.querySelector('[data-estado="Pendiente"]').children.length;
+            document.getElementById('count-en-proceso').innerText = document.querySelector('[data-estado="En Proceso"]').children.length;
+            document.getElementById('count-completada').innerText = document.querySelector('[data-estado="Completada"]').children.length;
+        }
+
+        function guardarEnBaseDeDatos(id, estado) {
+            fetch(`/api/actualizar_estado/${id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ estado: estado })
+            })
+            .then(response => response.json())
+            .then(data => { 
+                if(data.success) {
+                    window.location.reload(); 
+                } else {
+                    alert("Error de conexión. Recarga la página."); 
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        // Manejar formulario de edición
+        const formEditar = document.getElementById('formEditar');
+        formEditar.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await guardarTareaEditada();
+        });
+    });
+
+    /* ================= FUNCIONES DE MODALES ================= */
+    function abrirModalPrioridad(tareaId, prioridadActual) {
+        document.getElementById('formPrioridad').action = '/cambiar_prioridad/' + tareaId;
+        const limpia = prioridadActual.trim();
+        document.getElementById('select-prioridad').value = limpia;
+        document.getElementById('modalPrioridad').classList.add('active');
+    }
+
+    function abrirModalDocumento(tareaId, tituloTarea) {
+        document.getElementById('formDocumento').action = '/solicitar_documento/' + tareaId;
+        document.getElementById('doc-tarea-titulo').innerText = tituloTarea;
+        document.getElementById('modalDocumento').classList.add('active');
+    }
+
+    async function abrirModalEditar(tareaId) {
+        try {
+            const response = await fetch(`/api/obtener_tarea_editar/${tareaId}`);
+            const data = await response.json();
+            
+            if (!data.success) {
+                alert('Error al cargar los datos de la tarea');
+                return;
+            }
+
+            // Llenar formulario
+            document.getElementById('editarTitulo').value = data.tarea.titulo;
+            document.getElementById('editarDescripcion').value = data.tarea.descripcion;
+            
+            // Guardar ID de tarea en el formulario
+            document.getElementById('formEditar').dataset.tareaId = tareaId;
+            
+            // Renderizar checkboxes de usuarios
+            const usuariosContainer = document.getElementById('usuariosContainer');
+            usuariosContainer.innerHTML = '';
+            
+            data.todos_usuarios.forEach(usuario => {
+                const isChecked = data.tarea.usuarios.includes(usuario);
+                const checkboxHtml = `
+                    <label style="display: flex; align-items: center; cursor: pointer; gap: 8px; font-size: 13px;">
+                        <input type="checkbox" name="usuarios" value="${usuario}" ${isChecked ? 'checked' : ''} style="cursor: pointer; width: 18px; height: 18px;">
+                        <span>${usuario}</span>
+                    </label>
+                `;
+                usuariosContainer.innerHTML += checkboxHtml;
+            });
+            
+            document.getElementById('modalEditar').classList.add('active');
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al cargar la tarea');
+        }
+    }
+
+    async function guardarTareaEditada() {
+        const tareaId = document.getElementById('formEditar').dataset.tareaId;
+        const titulo = document.getElementById('editarTitulo').value.trim();
+        const descripcion = document.getElementById('editarDescripcion').value.trim();
+        
+        // Obtener usuarios seleccionados
+        const checkboxes = document.querySelectorAll('#formEditar input[name="usuarios"]:checked');
+        const usuarios = Array.from(checkboxes).map(cb => cb.value);
+        
+        if (!titulo) {
+            alert('El título es requerido');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/guardar_tarea_editar/${tareaId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    titulo: titulo,
+                    descripcion: descripcion,
+                    usuarios: usuarios
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                cerrarModal('modalEditar');
+                window.location.reload();
+            } else {
+                alert('Error: ' + (data.error || 'No se pudo guardar'));
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al guardar la tarea');
+        }
+    }
+
+    function cerrarModal(id) {
+        document.getElementById(id).classList.remove('active');
+    }
+
+    window.onclick = function(e) {
+        if (e.target.classList.contains('modal-overlay')) {
+            e.target.classList.remove('active');
+        }
+    }
+</script>
+
+</body>
+</html>

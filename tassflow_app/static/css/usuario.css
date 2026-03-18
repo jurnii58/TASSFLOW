@@ -1,0 +1,315 @@
+/* ===================================================
+   TASSFLOW - MAC GLASS DARK MODE (USUARIO)
+   =================================================== */
+
+:root {
+    --glass-bg: rgba(20, 20, 20, 0.55);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    /* Colores vibrantes adaptados para modo oscuro */
+    --ios-blue: #0a84ff;
+    --ios-green: #30d158;
+    --ios-red: #ff453a;
+    --ios-orange: #ff9f0a;
+    --text-main: #ffffff;
+    --text-muted: rgba(255, 255, 255, 0.6);
+}
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    /* Match login background image and gradient */
+    background: linear-gradient(135deg, #0f0f23 0%, #1a1a3f 50%, #0f1f35 100%);
+    background-image: 
+        url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2560&auto=format&fit=crop'),
+        linear-gradient(135deg, rgba(10, 20, 50, 0.7) 0%, rgba(15, 30, 60, 0.7) 100%);
+    background-size: cover, cover;
+    background-position: center, center;
+    background-attachment: fixed;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--text-main);
+}
+
+/* ================= HEADER MODERNO (CRISTAL) ================= */
+header {
+    background: rgba(15, 15, 15, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 28px 20px 20px 20px;
+    text-align: center;
+    border-bottom-left-radius: 25px;
+    border-bottom-right-radius: 25px;
+    border-bottom: 1px solid var(--glass-border);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+header h2 {
+    color: var(--text-main);
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 18px;
+    margin-top: 0;
+}
+
+.user-nav {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    margin-bottom: 12px;
+}
+
+.user-nav a {
+    text-decoration: none;
+    color: var(--text-muted);
+    font-weight: 500;
+    font-size: 15px;
+    padding: 6px 12px;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+
+.user-nav a:hover {
+    background: rgba(255,255,255,0.1);
+    color: var(--text-main);
+}
+
+.user-nav a.active {
+    background: var(--text-main);
+    color: #000000;
+    font-weight: 600;
+}
+
+.header-actions {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 6px;
+}
+
+.user-badge {
+    background: rgba(255,255,255,0.1);
+    color: var(--text-main);
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    border: 1px solid var(--glass-border);
+}
+
+.header-actions a {
+    color: var(--ios-red);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.header-actions a:hover { opacity: 0.8; }
+
+/* ================= DASHBOARD ================= */
+.user-dashboard {
+    max-width: 900px;
+    margin: auto;
+    padding: 30px 20px 60px;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+/* ================= COMPONENTES DE CRISTAL ================= */
+.filtro-prioridad, .task-card, .calendario-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+    color: var(--text-main);
+    transition: transform 0.2s ease, background 0.2s;
+}
+
+/* ================= FILTRO ================= */
+.filtro-prioridad {
+    padding: 14px 18px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    width: fit-content;
+    margin-bottom: 25px;
+}
+
+.filtro-prioridad select,
+.prioridad-form select {
+    background: rgba(0, 0, 0, 0.3);
+    color: var(--text-main);
+    border: 1px solid var(--glass-border);
+    padding: 8px 12px;
+    border-radius: 12px;
+    font-size: 14px;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+/* Opciones desplegable */
+.filtro-prioridad select option,
+.prioridad-form select option {
+    background: #1c1c1e;
+    color: white;
+}
+
+/* Estilo de foco accesible */
+.filtro-prioridad select:focus-visible,
+.prioridad-form select:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.12);
+    border-color: rgba(10, 132, 255, 0.28);
+}
+
+/* ================= GRID Y TARJETAS ================= */
+.tareas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 18px;
+}
+
+.task-card {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.task-card:hover {
+    transform: translateY(-5px);
+    background: rgba(30, 30, 30, 0.65);
+}
+
+.task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.task-header h4 { font-size: 16px; font-weight: 600; margin: 0; }
+.task-desc { font-size: 14px; color: var(--text-muted); margin: 0; }
+
+/* ================= BADGES NEÓN ================= */
+.estado, .prioridad-tag {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 10px;
+    font-weight: 600;
+    border: 1px solid transparent;
+}
+
+/* Estados */
+.estado.pendiente { background: rgba(255, 159, 10, 0.15); color: var(--ios-orange); border-color: rgba(255, 159, 10, 0.3); }
+.estado.completada { background: rgba(48, 209, 88, 0.15); color: var(--ios-green); border-color: rgba(48, 209, 88, 0.3); }
+
+/* Prioridades */
+.prioridad-tag.alta { background: rgba(255, 69, 58, 0.15); color: var(--ios-red); border-color: rgba(255, 69, 58, 0.3); }
+.prioridad-tag.media { background: rgba(255, 159, 10, 0.15); color: var(--ios-orange); border-color: rgba(255, 159, 10, 0.3); }
+.prioridad-tag.baja { background: rgba(10, 132, 255, 0.15); color: var(--ios-blue); border-color: rgba(10, 132, 255, 0.3); }
+
+/* ================= FOOTER Y BOTONES ================= */
+.task-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+}
+
+.btn-completar {
+    background: var(--ios-blue);
+    padding: 12px;
+    text-align: center;
+    border-radius: 14px;
+    color: white;
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.1s;
+    display: block;
+}
+.btn-completar:hover { opacity: 0.9; }
+.btn-completar:active { transform: scale(0.97); }
+
+.completed {
+    text-align: center;
+    color: var(--ios-green);
+    font-weight: 600;
+    font-size: 14px;
+    padding: 12px;
+}
+
+.task-card a.btn-chat {
+    font-size: 13px;
+    text-decoration: none;
+    color: var(--ios-blue);
+    font-weight: 500;
+    text-align: center;
+    display: block;
+}
+
+/* ================= PROGRESO Y ESTADÍSTICAS ================= */
+.resumen-usuario.compacto {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.progreso-circulo {
+    width: 120px;
+    height: 120px;
+    margin: auto;
+    border-radius: 50%;
+    /* Riel oscuro con línea de progreso azul brillante */
+    background: conic-gradient(var(--ios-blue) calc(var(--valor) * 1%), rgba(255,255,255,0.05) 0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.progreso-circulo span {
+    width: 85px;
+    height: 85px;
+    /* Centro del círculo iguala el color del panel trasero */
+    background: #1a1a1c;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+/* ================= CALENDARIO ================= */
+.calendario-card {
+    padding: 24px;
+}
+
+.fc { font-family: inherit; color: var(--text-main); }
+.fc-button { background: var(--ios-blue); border: none; border-radius: 10px; padding: 6px 12px; }
+.fc-button:hover { background: #0063d1; }
+.fc-event { border-radius: 8px; padding: 2px 6px; font-size: 12px; border: none; }
+
+/* CONTROLES (SELECTS Y BOTONES) – AQUÍ ESTÁ EL TRUCO PARA QUE NO SE ENCIMEN */
+select, .btn-ios {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 15px;
+    border: none;
+    background: #f2f2f7;
+    -webkit-appearance: none; /* Safari/Chrome antiguos */
+    appearance: none;         /* propiedad estándar */
+}

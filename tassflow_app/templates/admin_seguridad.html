@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Seguridad - Tassflow</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { --glass-bg: rgba(20, 20, 20, 0.55); --glass-border: rgba(255, 255, 255, 0.1); --ios-blue: #0a84ff; --ios-green: #30d158; --ios-red: #ff453a; --ios-orange: #ff9f0a; --text-main: #ffffff; --text-muted: rgba(255, 255, 255, 0.6); }
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; background: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2560&auto=format&fit=crop') no-repeat center center fixed; background-size: cover; background-color: #0f0f23; color: var(--text-main); }
+        
+        .header { background: rgba(15, 15, 15, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; border-bottom: 1px solid var(--glass-border); }
+        .header a { color: var(--ios-blue); text-decoration: none; font-weight: 500; display: flex; align-items: center; gap: 5px;}
+        
+        /* Contenedor que se va a imprimir en PDF */
+        #reporte-pdf { max-width: 1000px; margin: 40px auto; padding: 40px; background: rgba(15, 17, 26, 0.95); border-radius: 24px; border: 1px solid var(--glass-border); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        
+        .pdf-header { border-bottom: 2px solid #2a2d3d; padding-bottom: 20px; margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center; }
+        .pdf-header h1 { margin: 0; color: #ff453a; font-size: 32px; letter-spacing: 1px; }
+        .pdf-header p { margin: 5px 0 0 0; color: #8a91a5; font-size: 16px; }
+        
+        .pdf-kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 40px; }
+        .pdf-kpi { background: #1a1d2d; border: 1px solid #2a2d3d; border-radius: 12px; padding: 25px 15px; text-align: center; }
+        .pdf-kpi span { display: block; font-size: 12px; text-transform: uppercase; color: #8a91a5; letter-spacing: 0.5px; margin-bottom: 10px; }
+        .pdf-kpi strong { display: block; font-size: 36px; font-weight: bold; }
+        
+        .pdf-logs-section { margin-bottom: 30px; }
+        .pdf-logs-section h3 { color: #ffffff; margin-bottom: 20px; font-size: 18px; }
+        .pdf-logs-table { width: 100%; border-collapse: collapse; background: #1a1d2d; border-radius: 8px; overflow: hidden; }
+        .pdf-logs-table th { background: #2a2d3d; padding: 12px; text-align: left; color: #ffffff; font-weight: 600; font-size: 12px; text-transform: uppercase; }
+        .pdf-logs-table td { padding: 12px; border-bottom: 1px solid #2a2d3d; color: #8a91a5; font-size: 11px; }
+        .pdf-logs-table tr:last-child td { border-bottom: none; }
+
+        .btn-descargar { background: var(--ios-red); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; display: block; margin: 0 auto 40px; transition: 0.2s; }
+        .btn-descargar:hover { opacity: 0.8; }
+
+        /* Estilos adicionales para mejor presentación */
+        .security-status { text-align: center; margin-bottom: 30px; padding: 20px; border-radius: 12px; }
+        .security-status h2 { margin: 0 0 10px 0; }
+        .security-status p { margin: 0; }
+        
+        /* Estados de seguridad */
+        .security-status.protegido { background: rgba(48, 209, 88, 0.1); border: 1px solid rgba(48, 209, 88, 0.3); }
+        .security-status.protegido h2 { color: #30d158; }
+        .security-status.protegido p { color: #8a91a5; }
+        
+        .security-status.alerta { background: rgba(255, 159, 10, 0.1); border: 1px solid rgba(255, 159, 10, 0.3); }
+        .security-status.alerta h2 { color: #ff9f0a; }
+        .security-status.alerta p { color: #8a91a5; }
+        
+        .security-status.critico { background: rgba(255, 69, 58, 0.1); border: 1px solid rgba(255, 69, 58, 0.3); }
+        .security-status.critico h2 { color: #ff453a; }
+        .security-status.critico p { color: #8a91a5; }
+
+        .alert-badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
+        .alert-error { background: rgba(255, 69, 58, 0.2); color: #ff453a; border: 1px solid rgba(255, 69, 58, 0.4); }
+        .alert-warning { background: rgba(255, 159, 10, 0.2); color: #ff9f0a; border: 1px solid rgba(255, 159, 10, 0.4); }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <a href="{{ url_for('admin.admin_panel') }}"><i class="fas fa-chevron-left"></i> Volver al Panel</a>
+    <div style="width: 70px;"></div> 
+</div>
+
+<div style="text-align: center; margin-top: 30px;">
+    <a href="{{ url_for('admin.descargar_reporte_seguridad') }}" style="text-decoration: none;">
+        <button id="btn-descargar" class="btn-descargar">
+            <i class="fas fa-file-pdf" style="margin-right: 8px;"></i>Descargar Reporte de Seguridad PDF
+        </button>
+    </a>
+</div>
+
+<div id="reporte-pdf">
+    <div class="pdf-header">
+        <div>
+            <h1><i class="fas fa-shield-alt"></i> TASSFLOW SECURITY</h1>
+            <p>Reporte Ejecutivo de Seguridad del Sistema</p>
+        </div>
+        <div style="text-align: right;">
+            <p style="color: #ffffff; font-weight: bold; margin: 0; font-size: 16px;">Fecha de Análisis:</p>
+            <p id="fecha-actual" style="margin: 5px 0 0 0; color: #8a91a5; font-size: 14px;"></p>
+        </div>
+    </div>
+
+    <div class="security-status" id="security-status">
+        <h2><i class="fas fa-shield-alt" style="margin-right: 10px;"></i><span id="estado-text">Estado del Sistema: PROTEGIDO</span></h2>
+        <p id="estado-desc">Sistema operativo y monitoreando eventos de seguridad activamente</p>
+    </div>
+
+    <div class="pdf-kpi-grid">
+        <div class="pdf-kpi"><span>Total Eventos</span><strong style="color: #ff453a;">{{ total_logs }}</strong></div>
+        <div class="pdf-kpi"><span>Última Hora</span><strong style="color: #ff9f0a;">{{ logs_ultima_hora }}</strong></div>
+        <div class="pdf-kpi"><span>Últimas 24h</span><strong style="color: #ffffff;">{{ logs_ultimas_24h }}</strong></div>
+        <div class="pdf-kpi"><span>Estado</span><strong style="color: #30d158;">ACTIVO</strong></div>
+    </div>
+
+    <div class="pdf-logs-section">
+        <h3>Registros de Seguridad Recientes</h3>
+        <table class="pdf-logs-table">
+            <thead>
+                <tr>
+                    <th>Fecha y Hora</th>
+                    <th>Dirección IP</th>
+                    <th>Usuario Intentado</th>
+                    <th>Alerta</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs_recientes %}
+                <tr>
+                    <td>{{ log.fecha_intento.strftime('%d/%m/%Y %H:%M') }}</td>
+                    <td>{{ log.ip_origen }}</td>
+                    <td>{{ log.usuario_intentado }}</td>
+                    <td>
+                        <span class="alert-badge {% if 'fallido' in log.alerta.lower() or 'incorrectas' in log.alerta.lower() %}alert-error{% elif 'sospechosa' in log.alerta.lower() or 'inusual' in log.alerta.lower() %}alert-warning{% else %}alert-error{% endif %}">
+                            {{ log.alerta }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Poner la fecha de hoy
+    const hoy = new Date();
+    document.getElementById('fecha-actual').innerText = hoy.toLocaleDateString() + ' ' + hoy.toLocaleTimeString();
+
+    // Determinar estado de seguridad basado en eventos
+    const logsUltimaHora = {{ logs_ultima_hora }};
+    const logsUltimas24h = {{ logs_ultimas_24h }};
+    const statusElement = document.getElementById('security-status');
+    const estadoText = document.getElementById('estado-text');
+    const estadoDesc = document.getElementById('estado-desc');
+
+    if (logsUltimaHora > 20 || logsUltimas24h > 200) {
+        // CRÍTICO - Rojo
+        statusElement.classList.add('critico');
+        estadoText.innerText = 'Estado del Sistema: CRÍTICO';
+        estadoDesc.innerText = 'Se han detectado múltiples eventos de seguridad. Revisar inmediatamente.';
+    } else if (logsUltimaHora > 10 || logsUltimas24h > 100) {
+        // ALERTA - Orange
+        statusElement.classList.add('alerta');
+        estadoText.innerText = 'Estado del Sistema: ALERTA';
+        estadoDesc.innerText = 'Actividad inusual detectada. Monitoreo recomendado.';
+    } else {
+        // PROTEGIDO - Verde
+        statusElement.classList.add('protegido');
+        estadoText.innerText = 'Estado del Sistema: PROTEGIDO';
+        estadoDesc.innerText = 'Sistema operativo y monitoreando eventos de seguridad activamente';
+    }
+</script>
+
+</body>
+</html>
+
+</body>
+</html>

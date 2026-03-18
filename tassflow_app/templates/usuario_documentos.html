@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mis Documentos - Tassflow</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --glass-bg: rgba(20, 20, 20, 0.55);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --ios-blue: #0a84ff;
+            --ios-green: #30d158;
+            --ios-orange: #ff9f0a;
+            --text-main: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.6);
+        }
+
+        body {
+            margin: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+            background: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2560&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover; background-color: #0f0f23; color: var(--text-main); padding-bottom: 50px;
+        }
+
+        .header { background: rgba(15, 15, 15, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; border-bottom: 1px solid var(--glass-border); position: sticky; top: 0; z-index: 1000; }
+        .header h2 { margin: 0; font-size: 20px; font-weight: 600; }
+        .header a { color: var(--ios-blue); text-decoration: none; font-weight: 500; display: flex; align-items: center; gap: 5px; transition: 0.2s;}
+
+        .docs-layout { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px; max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        
+        .doc-card { background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); padding: 25px; border-radius: 24px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); display: flex; flex-direction: column; transition: transform 0.2s; }
+        .doc-card h3 { margin-top: 0; margin-bottom: 10px; font-size: 18px; display: flex; align-items: center; gap: 10px;}
+        
+        .badge { padding: 4px 10px; border-radius: 8px; font-weight: bold; font-size: 11px; text-transform: uppercase; width: fit-content; margin-bottom: 15px; border: 1px solid rgba(255, 159, 10, 0.4); background: rgba(255, 159, 10, 0.2); color: var(--ios-orange); }
+
+        .ios-btn { width: 100%; padding: 12px; border-radius: 12px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; color: white; text-align: center; display: inline-block; box-sizing: border-box; text-decoration: none; transition: 0.2s; margin-top: auto;}
+        .ios-btn.primary { background: var(--ios-blue); }
+
+        .empty-state { text-align: center; color: var(--text-muted); grid-column: 1 / -1; padding: 50px; background: var(--glass-bg); border-radius: 24px; border: 1px dashed var(--glass-border); }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <a href="{{ url_for('usuario.usuario_panel') }}"><i class="fas fa-chevron-left"></i> Volver</a>
+    <h2><i class="fas fa-folder-open" style="margin-right: 8px; color: var(--ios-orange);"></i>Gestor de Documentos</h2>
+    <div style="width: 70px;"></div> 
+</header>
+
+<section class="docs-layout">
+    {% if documentos %}
+        {% for doc in documentos %}
+            <div class="doc-card">
+                <h3><i class="fas fa-file-alt" style="color: var(--ios-orange);"></i> {{ doc.nombre_documento }}</h3>
+                <span class="badge">Estado: {{ doc.estado }}</span>
+                <p><strong>Motivo:</strong> {{ doc.motivo }}</p>
+                <p><strong>Tarea:</strong> {{ doc.tarea_titulo }}</p>
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: -10px;">
+                    <i class="far fa-clock"></i> Solicitado el: {{ doc.fecha_solicitud.strftime('%d/%m/%Y %H:%M') if doc.fecha_solicitud else 'Reciente' }}
+                </p>
+                <form action="#" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; margin-top: auto;">
+                    <input type="file" name="archivo" required style="margin-bottom: 15px; color: white; background: rgba(255,255,255,0.05); border-radius: 8px; padding: 10px; border: 1px dashed var(--glass-border);">
+                    <button type="button" class="ios-btn primary" onclick="alert('Carga de archivos habilitada próximamente')">Subir Archivo</button>
+                </form>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-folder-minus" style="font-size: 40px; display: block; margin-bottom: 15px;"></i>
+            <h2>Sin solicitudes</h2>
+            <p>Usa el icono amarillo en tus tareas para solicitar nuevos documentos.</p>
+        </div>
+    {% endif %}
+</section>
+
+</body>
+</html>

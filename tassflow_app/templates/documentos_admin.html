@@ -1,0 +1,25 @@
+<h2>Documentos recibidos</h2>
+
+<ul class="lista-tareas">
+{% for d in documentos %}
+<li class="tarea-chat-item">
+    <div>
+        <strong>{{ d.nombre }}</strong><br>
+        Usuario: {{ d.usuario_asignado }}<br>
+        Estado: {{ d.estado }}
+    </div>
+
+    {% if d.archivo %}
+        <a href="{{ url_for('static', filename='uploads/' ~ d.archivo) }}"
+           target="_blank" class="btn-chat">Ver</a>
+
+        <a href="{{ url_for('aprobar_documento', id=d._id) }}" class="btn-chat">
+            Aprobar
+        </a>
+
+        <a href="{{ url_for('rechazar_documento', id=d._id) }}"
+           class="btn-danger">Rechazar</a>
+    {% endif %}
+</li>
+{% endfor %}
+</ul>

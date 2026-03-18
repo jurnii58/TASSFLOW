@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Tassflow - Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { 
+            --glass-bg: rgba(20, 20, 20, 0.6); 
+            --glass-border: rgba(255, 255, 255, 0.1); 
+            --ios-blue: #0a84ff; 
+            --ios-secondary: #30b0c0;
+            --text-main: #ffffff; 
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+            background: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2560&auto=format&fit=crop') no-repeat center center fixed; 
+            background-size: cover; 
+            background-color: #0f0f23; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+            color: var(--text-main);
+            padding: 20px;
+        }
+
+        .login-container {
+            background: var(--glass-bg); 
+            backdrop-filter: blur(25px); 
+            border: 1px solid var(--glass-border); 
+            padding: 0;
+            border-radius: 24px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5); 
+            width: 100%; 
+            max-width: 420px;
+            overflow: hidden;
+            animation: cardAppear 0.6s ease-out;
+        }
+
+        @keyframes cardAppear {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* TABS HEADER */
+        .tabs-header {
+            display: flex;
+            border-bottom: 1px solid var(--glass-border);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 16px 20px;
+            border: none;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-main);
+            background: rgba(10, 132, 255, 0.05);
+        }
+
+        .tab-btn.active {
+            color: var(--ios-blue);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--ios-blue), var(--ios-secondary));
+            animation: slideIn 0.4s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                width: 0;
+                left: 50%;
+            }
+            to {
+                width: 100%;
+                left: 0;
+            }
+        }
+
+        /* CONTENT */
+        .tab-content {
+            padding: 40px;
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header-content {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .icon-section {
+            font-size: 40px;
+            margin-bottom: 12px;
+            animation: iconBounce 0.6s ease;
+        }
+
+        @keyframes iconBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .header-content h2 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header-content p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 13px;
+        }
+
+        .input-wrapper {
+            margin-bottom: 15px;
+        }
+
+        .input-wrapper label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 15px;
+            font-size: 16px;
+            color: var(--ios-blue);
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="email"] {
+            width: 100%;
+            padding: 14px 15px 14px 45px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--text-main);
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--ios-blue);
+            background: rgba(10, 132, 255, 0.1);
+            box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.1);
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .ios-btn { 
+            width: 100%; 
+            padding: 15px; 
+            border-radius: 12px; 
+            border: none; 
+            font-size: 15px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            color: white; 
+            background: linear-gradient(135deg, var(--ios-blue), var(--ios-secondary));
+            transition: all 0.3s;
+            margin-top: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        .ios-btn:hover { 
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(10, 132, 255, 0.3);
+        }
+
+        .ios-btn:active {
+            transform: translateY(0);
+        }
+
+        .link-olvide { 
+            display: block; 
+            margin-top: 12px; 
+            color: var(--ios-blue); 
+            text-decoration: none; 
+            font-size: 13px;
+            transition: color 0.3s;
+            text-align: center;
+        }
+
+        .link-olvide:hover {
+            color: var(--ios-secondary);
+        }
+
+        .error-msg { 
+            background: rgba(255, 69, 58, 0.2); 
+            color: #ff453a; 
+            padding: 12px; 
+            border-radius: 10px; 
+            font-size: 13px; 
+            margin-bottom: 20px; 
+            border: 1px solid rgba(255, 69, 58, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: slideDown 0.3s ease;
+        }
+
+        .error-msg i {
+            font-size: 16px;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .success-msg {
+            background: rgba(48, 209, 88, 0.2);
+            color: #30d158;
+            border-color: #30d158;
+            border: 1px solid rgba(48, 209, 88, 0.4);
+        }
+
+        .signup-info {
+            background: rgba(48, 176, 192, 0.1);
+            border-left: 3px solid var(--ios-secondary);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .signup-info strong {
+            color: var(--ios-secondary);
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .signup-info li {
+            margin-left: 20px;
+            margin-bottom: 4px;
+        }
+
+        .form-section-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--ios-blue);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-section-title:first-of-type {
+            margin-top: 0;
+        }
+
+        .form-section-title i {
+            font-size: 14px;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 15px;
+                height: auto;
+                min-height: 100vh;
+                justify-content: flex-start;
+                padding-top: 20px;
+            }
+
+            .login-container {
+                max-width: 100%;
+                border-radius: 16px;
+                margin-bottom: 20px;
+            }
+
+            .tabs-header {
+                gap: 0;
+            }
+
+            .tab-btn {
+                padding: 13px 10px;
+                font-size: 12px;
+                white-space: nowrap;
+            }
+
+            .tab-btn i {
+                margin-right: 4px;
+                font-size: 13px;
+            }
+
+            .tab-content {
+                padding: 20px 15px;
+            }
+
+            .header-content {
+                margin-bottom: 20px;
+            }
+
+            .header-content h2 {
+                font-size: 20px;
+                margin-bottom: 4px;
+            }
+
+            .header-content p {
+                font-size: 12px;
+            }
+
+            .icon-section {
+                font-size: 32px;
+                margin-bottom: 10px;
+            }
+
+            .input-wrapper {
+                margin-bottom: 12px;
+            }
+
+            .input-wrapper label {
+                font-size: 12px;
+            }
+
+            .input-group i {
+                left: 12px;
+                font-size: 14px;
+            }
+
+            input[type="text"],
+            input[type="password"] {
+                padding: 12px 12px 12px 38px;
+                font-size: 14px;
+                border-radius: 10px;
+            }
+
+            .ios-btn {
+                padding: 12px;
+                font-size: 13px;
+                margin-top: 8px;
+                border-radius: 10px;
+            }
+
+            .link-olvide {
+                margin-top: 10px;
+                font-size: 12px;
+            }
+
+            .error-msg {
+                padding: 10px;
+                font-size: 12px;
+                margin-bottom: 15px;
+                gap: 6px;
+            }
+
+            .error-msg i {
+                font-size: 14px;
+            }
+
+            .signup-info {
+                padding: 10px;
+                font-size: 12px;
+                margin-bottom: 15px;
+                border-left-width: 2px;
+            }
+
+            .signup-info strong {
+                font-size: 12px;
+                margin-bottom: 6px;
+            }
+
+            .signup-info li {
+                font-size: 11px;
+                margin-left: 18px;
+                margin-bottom: 3px;
+            }
+
+            .form-section-title {
+                font-size: 11px;
+                margin-bottom: 12px;
+                margin-top: 15px;
+                gap: 6px;
+            }
+
+            .form-section-title i {
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 320px) {
+            body {
+                padding: 10px;
+                padding-top: 15px;
+            }
+
+            .login-container {
+                border-radius: 12px;
+            }
+
+            .tab-btn {
+                padding: 11px 8px;
+                font-size: 11px;
+            }
+
+            .tab-content {
+                padding: 15px 12px;
+            }
+
+            .header-content h2 {
+                font-size: 18px;
+            }
+
+            .icon-section {
+                font-size: 28px;
+            }
+
+            input[type="text"],
+            input[type="password"] {
+                padding: 11px 11px 11px 35px;
+                font-size: 13px;
+            }
+
+            .ios-btn {
+                padding: 11px;
+                font-size: 12px;
+            }
+
+            .input-wrapper {
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <!-- TABS HEADER -->
+        <div class="tabs-header">
+            <button class="tab-btn active" onclick="switchTab('login')">
+                <i class="fas fa-sign-in-alt" style="margin-right: 8px;"></i> Ingresar
+            </button>
+            <button class="tab-btn" onclick="switchTab('registro')">
+                <i class="fas fa-rocket" style="margin-right: 8px;"></i> Registrarse
+            </button>
+        </div>
+
+        <!-- TAB: LOGIN -->
+        <div id="login" class="tab-content active">
+            <div class="header-content">
+                <div class="icon-section">
+                    <i class="fas fa-brain" style="color: var(--ios-blue);"></i>
+                </div>
+                <h2>Tassflow</h2>
+                <p>Sistema de Carga Mental</p>
+            </div>
+
+            {% if error %} 
+                <div class="error-msg">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>{{ error }}</span>
+                </div> 
+            {% endif %}
+
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="error-msg success-msg">
+                        <i class="fas fa-check-circle"></i>
+                        <span>{{ messages[0] }}</span>
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="/">
+                <div class="input-wrapper">
+                    <div class="input-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" name="usuario" placeholder="Usuario" required autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="input-wrapper">
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" name="contrasena" placeholder="Contraseña" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="ios-btn">
+                    <i class="fas fa-arrow-right"></i> Ingresar
+                </button>
+            </form>
+
+            <a href="{{ url_for('auth.olvide_password') }}" class="link-olvide">¿Olvidaste tu contraseña?</a>
+        </div>
+
+        <!-- TAB: REGISTRO -->
+        <div id="registro" class="tab-content">
+            <div class="header-content">
+                <div class="icon-section">
+                    <i class="fas fa-rocket" style="background: linear-gradient(135deg, var(--ios-blue), var(--ios-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;"></i>
+                </div>
+                <h2>Crea tu Empresa</h2>
+                <p>Comienza gratis hoy</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        {% if category == 'error' %}
+                            <div class="error-msg">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <span>{{ message }}</span>
+                            </div>
+                        {% else %}
+                            <div class="error-msg success-msg">
+                                <i class="fas fa-check-circle"></i>
+                                <span>{{ message }}</span>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="signup-info">
+                <strong><i class="fas fa-check-circle"></i> Obtén acceso a:</strong>
+                <ul style="list-style: none; margin: 0;">
+                    <li>✓ Acceso administrativo completo</li>
+                    <li>✓ Panel de control exclusivo</li>
+                    <li>✓ Gestión de equipos</li>
+                    <li>✓ Protección de datos</li>
+                </ul>
+            </div>
+
+            <form method="POST" action="{{ url_for('auth.registro_empresa') }}">
+                <div class="form-section-title">
+                    <i class="fas fa-building"></i> Tu Empresa
+                </div>
+
+                <div class="input-wrapper">
+                    <div class="input-group">
+                        <i class="fas fa-store"></i>
+                        <input type="text" 
+                               name="nombre_empresa" 
+                               placeholder="Nombre comercial" 
+                               required 
+                               autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="form-section-title">
+                    <i class="fas fa-user-tie"></i> Tu Cuenta
+                </div>
+
+                <div class="input-wrapper">
+                    <div class="input-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" 
+                               name="nombre_usuario" 
+                               placeholder="Nombre de usuario" 
+                               required 
+                               autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="input-wrapper">
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" 
+                               name="contrasena" 
+                               placeholder="Contraseña (8+ caracteres)" 
+                               required>
+                    </div>
+                    <small style="display: block; color: rgba(255,255,255,0.5); margin-top: 6px; font-size: 11px;">
+                        Mínimo 8 caracteres: 1 mayúscula, 1 número, 1 símbolo (@$!%*?&)
+                    </small>
+                </div>
+
+                <button type="submit" class="ios-btn">
+                    <i class="fas fa-check-circle"></i> Crear Empresa
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Detectar parámetro tab en URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const tabParam = urlParams.get('tab');
+        
+        if (tabParam === 'registro') {
+            switchTab('registro');
+        }
+
+        function switchTab(tabName) {
+            // Ocultar todos los tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Desactivar todos los botones
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Mostrar el tab seleccionado
+            document.getElementById(tabName).classList.add('active');
+
+            // Activar el botón correspondiente
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => {
+                if (tabName === 'login' && btn.textContent.includes('Ingresar')) {
+                    btn.classList.add('active');
+                } else if (tabName === 'registro' && btn.textContent.includes('Registrarse')) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        // Configurar onclick en los botones
+        document.querySelectorAll('.tab-btn').forEach((btn, index) => {
+            btn.onclick = function() {
+                if (index === 0) {
+                    switchTab('login');
+                } else {
+                    switchTab('registro');
+                }
+            };
+        });
+    </script>
+</body>
+</html>

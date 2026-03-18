@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendario - Tassflow</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+/* ===================================================
+   TASSFLOW - CALENDARIO (MAC GLASS DARK MODE)
+   =================================================== */
+:root {
+    --glass-bg: rgba(20, 20, 20, 0.55);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --ios-blue: #0a84ff;
+    --text-main: #ffffff;
+    
+    /* Variables nativas de FullCalendar para Modo Oscuro */
+    --fc-border-color: var(--glass-border);
+    --fc-page-bg-color: transparent;
+    --fc-neutral-bg-color: rgba(255, 255, 255, 0.05);
+    --fc-neutral-text-color: var(--text-main);
+    --fc-today-bg-color: rgba(10, 132, 255, 0.15); /* Resalta el día de hoy con azul suave */
+    --fc-button-bg-color: var(--ios-blue);
+    --fc-button-border-color: var(--ios-blue);
+    --fc-button-hover-bg-color: #0063d1;
+    --fc-button-hover-border-color: #0063d1;
+    --fc-button-active-bg-color: #0051a8;
+}
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    /* Mismo fondo oscuro abstracto */
+    background: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2560&auto=format&fit=crop') no-repeat center center fixed;
+    background-size: cover;
+    background-color: #0f0f23;
+    color: var(--text-main);
+}
+
+/* HEADER CRISTAL */
+.header {
+    background: rgba(15, 15, 15, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--glass-border);
+    padding: 20px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.header h2 { margin: 0; font-size: 20px; font-weight: 600; color: var(--text-main); }
+.header a { color: var(--ios-blue); text-decoration: none; font-weight: 500; display: flex; align-items: center; gap: 5px;}
+.header a:hover { opacity: 0.8; }
+
+/* CONTENEDOR DEL CALENDARIO */
+.cal-container {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 24px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+}
+
+/* Ajustes de texto para modo oscuro */
+.fc { color: var(--text-main); }
+.fc .fc-toolbar-title { font-size: 1.2em; font-weight: 600; text-transform: capitalize; }
+.fc .fc-col-header-cell-cushion, 
+.fc .fc-daygrid-day-number { color: var(--text-main); text-decoration: none; text-transform: capitalize; }
+.fc .fc-daygrid-day-number:hover { text-decoration: underline; }
+.fc-theme-standard td, .fc-theme-standard th { border-color: var(--glass-border); }
+</style>
+
+</head>
+<body>
+
+<div class="header">
+    <a href="/usuario"><i class="fas fa-chevron-left"></i> Volver</a>
+    <h2>📅 Calendario de tareas</h2>
+    <div style="width: 70px;"></div> 
+</div>
+
+<div class="cal-container">
+    <div id="calendario"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/locales/es.global.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+    const calendarEl = document.getElementById("calendario");
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: "dayGridMonth",
+        locale: "es", /* Ahora sí funcionará porque cargamos el diccionario arriba */
+        height: "auto", /* Quita el scroll innecesario */
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek' /* Agrega vista de semana para mayor control */
+        },
+        buttonText: {
+            today: 'Hoy',
+            month: 'Mes',
+            week: 'Semana'
+        },
+        events: {{ eventos | tojson | safe }}
+    });
+    calendar.render();
+});
+</script>
+
+</body>
+</html>
