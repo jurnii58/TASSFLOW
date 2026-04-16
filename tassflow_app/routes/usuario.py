@@ -1,7 +1,9 @@
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, session, flash
+import math
 from bson.objectid import ObjectId
-from datetime import datetime
-from tassflow_app.database import tareas_col, documentos_col, usuarios_col
+from datetime import datetime, timedelta
+import requests
+from tassflow_app.database import tareas_col, documentos_col, usuarios_col, db
 
 usuario_bp = Blueprint('usuario', __name__)
 
@@ -77,15 +79,66 @@ def actualizar_estado(id):
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ==============================================================
+# RUTA MÓVIL: OBTENER TAREAS DE USUARIO
+# ============================================================== 
+@usuario_bp.route("/api/mobile_tareas/<nombre_usuario>", methods=["GET"])
+def mobile_tareas(nombre_usuario):
+    tareas_db = list(db["tareas"].find({
+        "usuarios": nombre_usuario,
+        "estado": {"$ne": "Completada"}
+    }).sort("fecha_creacion", -1))
+
+    lista_tareas = []
+    for t in tareas_db:
+        lista_tareas.append({
+            "id": str(t["_id"]),
+            "titulo": t.get("titulo", "Sin título"),
+            "descripcion": t.get("descripcion", ""),
+            "prioridad": t.get("prioridad", "Media"),
+            "estado": t.get("estado", "Pendiente")
+        })
+
+    return jsonify({"success": True, "tareas": lista_tareas}), 200
+
+# ==============================================================
 # OTRAS FUNCIONES DEL PANEL
 # ==============================================================
 @usuario_bp.route("/cambiar_prioridad/<tarea_id>", methods=["POST"])
 def cambiar_prioridad(tarea_id):
-    if session.get("rol") != "usuario": return redirect(url_for("auth.login"))
-    
+    if session.get("rol") != "usuario":
+        return redirect(url_for("auth.login"))
+
     nueva_prioridad = request.form.get("prioridad")
-    tareas_col.update_one({"_id": ObjectId(tarea_id)}, {"$set": {"prioridad": nueva_prioridad}})
-    return redirect(url_for("usuario.usuario_panel"))
+    usuario_id = session.get("usuario_id")
+    
+    # 🛡️ EL COACH DE SALUD (ESCUDO PROTECTOR) 🛡️
+    # Si el empleado intenta echarse encima una tarea pesada...
+    if nueva_prioridad == "Alta" and usuario_id:
+        # Revisamos cómo está su corazón en este momento
+        ultimo_bpm = db["registro_biometrico"].find_one(
+            {"usuario_id": ObjectId(usuario_id)},
+            sort=[("fecha", -1)]
+        )
+        
+        # Si su corazón está acelerado (Cámbialo a 70 temporalmente para hacer la prueba)
+        if ultimo_bpm and ultimo_bpm.get("ritmo_cardiaco_promedio", 0) >= 100:
+            flash(
+                f"⚠️ Alerta de Salud: Tu ritmo cardíaco actual es de {ultimo_bpm['ritmo_cardiaco_promedio']} BPM. "
+                "Por tu bienestar, el sistema recomienda no asumir tareas de alta carga mental en este momento. "
+                "Tómate un respiro.",
+                "error"
+            )
+            return redirect(request.referrer or url_for("usuario.usuario_panel")) # Cancelamos el cambio y la regresamos a su tablero
+    # =========================================================
+
+    # Si todo está bien (o si eligió Baja/Media), actualizamos la tarea normal
+    tareas_col.update_one(
+        {"_id": ObjectId(tarea_id)},
+        {"$set": {"prioridad": nueva_prioridad}}
+    )
+    
+    flash("Prioridad actualizada correctamente", "success")
+    return redirect(request.referrer or url_for("usuario.usuario_panel"))
 
 @usuario_bp.route("/solicitar_documento/<tarea_id>", methods=["POST"])
 def solicitar_documento(tarea_id):
@@ -198,3 +251,114 @@ def guardar_tarea_editar(tarea_id):
             
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+@usuario_bp.route("/api/sincronizar_fit", methods=["POST"])
+def sincronizar_google_fit():
+    # 1. Verificamos que sea un usuario válido
+    usuario_id = session.get("usuario_id")
+    if not usuario_id:
+        return jsonify({"error": "No autorizado"}), 401
+
+    # 2. El Token de Permiso (La "Llave" del usuario)
+    # Nota: En un flujo real, el usuario te da este token al darle clic a "Iniciar sesión con Google"
+    access_token = request.json.get("google_access_token")
+    if not access_token:
+        return jsonify({"error": "Falta el token de Google Fit"}), 400
+
+    # 3. Configuramos la máquina del tiempo (Queremos los datos de las últimas 24 horas)
+    ahora = int(datetime.now().timestamp() * 1000)
+    ayer = int((datetime.now() - timedelta(days=1)).timestamp() * 1000)
+
+    # 4. Preparamos la "llamada telefónica" a la API de Google
+    url_google_fit = "https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate"
+    
+    cabeceras = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json"
+    }
+    
+    # Le decimos a Google exactamente qué datos queremos (com.google.heart_rate.bpm)
+    cuerpo_peticion = {
+        "aggregateBy": [{
+            "dataTypeName": "com.google.heart_rate.bpm"
+        }],
+        "bucketByTime": { "durationMillis": 86400000 }, # Agrupado por 1 día (en milisegundos)
+        "startTimeMillis": ayer,
+        "endTimeMillis": ahora
+    }
+
+    # 5. ¡Hacemos la llamada!
+    respuesta = requests.post(url_google_fit, headers=cabeceras, json=cuerpo_peticion)
+    
+    if respuesta.status_code != 200:
+        return jsonify({"error": "Google rechazó la conexión", "detalles": respuesta.text}), 400
+
+    datos_fit = respuesta.json()
+
+    # 6. Extraemos el ritmo cardíaco de la maraña de datos que nos manda Google
+    try:
+        # Navegamos por el JSON de Google para sacar el promedio (fpVal)
+        ritmo_promedio = datos_fit['bucket'][0]['dataset'][0]['point'][0]['value'][0]['fpVal']
+    except (IndexError, KeyError):
+        return jsonify({"error": "No hay datos de ritmo cardíaco registrados hoy"}), 404
+
+    # 7. Guardamos el dato biométrico en MongoDB
+    db["registro_biometrico"].insert_one({
+        "usuario_id": ObjectId(usuario_id),
+        "ritmo_cardiaco_promedio": round(ritmo_promedio, 1),
+        "origen": "Google Fit API",
+        "fecha": datetime.now()
+    })
+
+    return jsonify({
+        "mensaje": "Sincronización exitosa", 
+        "bpm": round(ritmo_promedio, 1)
+    }), 200
+
+@usuario_bp.route('/api/predict_burnout/<usuario_id>', methods=['POST'])
+def predict_burnout(usuario_id):
+    datos = request.get_json() or {}
+
+    A = float(datos.get('tasa_entrada', 2.0))
+    k = float(datos.get('eficiencia', 0.15))
+    UMBRAL_COLAPSO = 10.0
+
+    saturacion_maxima = A / k if k != 0 else float('inf')
+    dias_proyeccion = 15
+    proyeccion_futura = []
+    alerta_disparada = False
+    dia_critico = None
+
+    for t in range(1, dias_proyeccion + 1):
+        y_t = (1 - saturacion_maxima) * math.exp(-k * t) + saturacion_maxima
+        proyeccion_futura.append({
+            "dia": t,
+            "tareas_acumuladas": round(y_t, 2)
+        })
+        if y_t >= UMBRAL_COLAPSO and not alerta_disparada:
+            alerta_disparada = True
+            dia_critico = t
+
+    if saturacion_maxima >= UMBRAL_COLAPSO:
+        status = "RIESGO CRÍTICO"
+        mensaje = (
+            f"ALERTA PREDICTIVA: El empleado alcanzará el límite de colapso ({UMBRAL_COLAPSO} tareas) "
+            f"en el DÍA {dia_critico if dia_critico else 'desconocido'}. "
+            f"Su saturación perpetua será de {round(saturacion_maxima, 1)} tareas. Se requiere intervención."
+        )
+    else:
+        status = "SALUDABLE"
+        mensaje = (
+            f"Operación estable. El empleado se estabilizará matemáticamente en un máximo de "
+            f"{round(saturacion_maxima, 1)} tareas pendientes."
+        )
+
+    return jsonify({
+        "usuario_id": usuario_id,
+        "diagnostico": {
+            "estado": status,
+            "mensaje_gerencial": mensaje,
+            "saturacion_limite": round(saturacion_maxima, 2)
+        },
+        "datos_grafica": proyeccion_futura
+    }), 200

@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <title>Panel Administrador - Tassflow</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='icono.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icono.png') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -41,7 +44,20 @@
         .btn-action-task.del:hover { background: var(--ios-red) !important; color: white !important; }
         .btn-action-task.edit { background: rgba(255, 159, 10, 0.15) !important; color: var(--ios-orange) !important; border: 1px solid rgba(255, 159, 10, 0.3) !important; }
         .btn-action-task.edit:hover { background: var(--ios-orange) !important; color: white !important; }
-        
+        .btn-action-task.stats { background: rgba(10, 132, 255, 0.12) !important; color: #0a84ff !important; border: 1px solid rgba(10, 132, 255, 0.25) !important; }
+        .btn-action-task.stats:hover { background: rgba(10, 132, 255, 0.18) !important; color: white !important; }
+        .burnout-title { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .burnout-grid { display: grid; grid-template-columns: minmax(160px, 1fr) minmax(160px, 1fr); gap: 16px; margin-top: 18px; }
+        .burnout-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09); border-radius: 18px; padding: 18px; }
+        .burnout-card h4 { margin: 0 0 10px 0; color: rgba(255,255,255,0.72); font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; }
+        .burnout-card p { margin: 0; font-size: 30px; font-weight: 700; }
+        .burnout-list { margin-top: 16px; list-style: none; padding: 0; max-height: 260px; overflow-y: auto; }
+        .burnout-list li { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 14px; }
+        .burnout-list li span:first-child { color: rgba(255,255,255,0.75); }
+        .burnout-body { display: none; margin-top: 14px; }
+        .burnout-loader { color: rgba(255,255,255,0.75); margin: 24px 0; }
+        .burnout-error { margin-top: 20px; color: #ff6b6b; font-weight: 600; }
+
         .lista-usuarios, .lista-tareas, .lista-actividades, .lista-alertas { list-style: none; padding: 0; margin: 0; }
         .lista-usuarios li, .tarea-chat-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--glass-border); gap: 15px;}
         .tarea-chat-item div { flex: 1; }
@@ -197,8 +213,34 @@
         <ul class="lista-usuarios" style="max-height: 180px; overflow-y: auto; padding-right: 10px;">
             {% for u in usuarios %}
                 <li>
-                    <span>{{ u.nombre_usuario }} {% if u.get('solicitud_reset') %}<i class="fas fa-key icono-alerta-usuario" title="Ayuda"></i>{% endif %}</span>
+                    <span>
+                        {{ u.nombre_usuario }}
+                        {% if u.get('solicitud_reset') %}<i class="fas fa-key icono-alerta-usuario" title="Ayuda"></i>{% endif %}
+                        <br>
+                        {% if u.bpm_actual %}
+                            {% if u.bpm_actual < 80 %}
+                                <span style="background: rgba(48, 209, 88, 0.2); color: #30d158; padding: 4px 8px; border-radius: 8px; font-size: 12px; font-weight: bold;">
+                                    🟢 {{ u.bpm_actual }} BPM (Óptimo)
+                                </span>
+                            {% elif u.bpm_actual < 100 %}
+                                <span style="background: rgba(255, 159, 10, 0.2); color: #ff9f0a; padding: 4px 8px; border-radius: 8px; font-size: 12px; font-weight: bold;">
+                                    🟡 {{ u.bpm_actual }} BPM (Alerta)
+                                </span>
+                            {% else %}
+                                <span style="background: rgba(255, 69, 58, 0.2); color: #ff453a; padding: 4px 8px; border-radius: 8px; font-size: 12px; font-weight: bold;">
+                                    🔴 {{ u.bpm_actual }} BPM (Sobrecarga)
+                                </span>
+                            {% endif %}
+                        {% else %}
+                            <span style="background: rgba(255, 255, 255, 0.1); color: gray; padding: 4px 8px; border-radius: 8px; font-size: 12px;">
+                                ⚪ Sin datos Fit
+                            </span>
+                        {% endif %}
+                    </span>
                     <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                        <button type="button" class="ios-btn secondary btn-action-task stats" onclick="verEstadisticas('{{ u._id }}', '{{ u.nombre_usuario }}')" title="Ver estadísticas predictivas">
+                            <i class="fas fa-chart-line"></i>
+                        </button>
                         {% if u.get('solicitud_reset') %}
                             <button type="button" class="ios-btn warning" onclick="abrirModalReset('{{ url_for('admin.resetear_password', id=u._id) }}', '{{ u.nombre_usuario }}')">Restablecer</button>
                         {% endif %}
@@ -376,6 +418,34 @@
     </div>
 </div>
 
+<div class="modal-overlay" id="modalBurnout">
+    <div class="modal-box" style="max-width: 760px; text-align: left;">
+        <div class="burnout-title">
+            <div>
+                <h3 style="margin:0; font-size: 20px;">Burnout predictivo: <span id="burnout-usuario-nombre"></span></h3>
+                <p id="burnout-status" style="margin: 8px 0 0; color: #ffd60a; font-weight: 700;"></p>
+            </div>
+            <button type="button" onclick="cerrarModal('modalBurnout')" class="ios-btn ghost" style="width:auto; padding: 8px 12px;">Cerrar</button>
+        </div>
+        <div id="burnout-loading" class="burnout-loader">Cargando estadísticas predictivas...</div>
+        <div id="burnout-error" class="burnout-error"></div>
+        <div id="burnout-body" class="burnout-body">
+            <p id="burnout-mensaje" style="color: rgba(255,255,255,0.82); font-size: 14px; line-height: 1.6; margin-top: 10px;"></p>
+            <div class="burnout-grid">
+                <div class="burnout-card">
+                    <h4>Saturación límite</h4>
+                    <p id="burnout-saturacion"></p>
+                </div>
+                <div class="burnout-card">
+                    <h4>Días proyectados</h4>
+                    <p>15</p>
+                </div>
+            </div>
+            <ul id="burnout-dias-list" class="burnout-list"></ul>
+        </div>
+    </div>
+</div>
+
 <script>
     let urlActualTarea = '';
     let urlActualUsuario = '';
@@ -397,6 +467,51 @@
         const form = document.getElementById('formReset');
         form.action = url;
         document.getElementById('modalReset').classList.add('active');
+    }
+
+    async function verEstadisticas(usuarioId, usuarioNombre) {
+        document.getElementById('burnout-usuario-nombre').textContent = usuarioNombre;
+        document.getElementById('burnout-status').textContent = '';
+        document.getElementById('burnout-mensaje').textContent = '';
+        document.getElementById('burnout-saturacion').textContent = '';
+        document.getElementById('burnout-dias-list').innerHTML = '';
+        document.getElementById('burnout-error').textContent = '';
+        document.getElementById('burnout-loading').style.display = 'block';
+        document.getElementById('burnout-body').style.display = 'none';
+        document.getElementById('modalBurnout').classList.add('active');
+
+        try {
+            const response = await fetch(`/api/predict_burnout/${usuarioId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tasa_entrada: 2.0, eficiencia: 0.15 })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error de red: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const diagnostico = data.diagnostico || {};
+            const grafica = data.datos_grafica || [];
+
+            document.getElementById('burnout-status').textContent = diagnostico.estado || 'SIN DATOS';
+            document.getElementById('burnout-mensaje').textContent = diagnostico.mensaje_gerencial || '';
+            document.getElementById('burnout-saturacion').textContent = diagnostico.saturacion_limite !== undefined ? diagnostico.saturacion_limite : 'N/A';
+
+            grafica.forEach(item => {
+                const li = document.createElement('li');
+                li.innerHTML = `<span>Día ${item.dia}</span><span>${item.tareas_acumuladas}</span>`;
+                document.getElementById('burnout-dias-list').appendChild(li);
+            });
+
+            document.getElementById('burnout-loading').style.display = 'none';
+            document.getElementById('burnout-body').style.display = 'block';
+        } catch (error) {
+            document.getElementById('burnout-loading').style.display = 'none';
+            document.getElementById('burnout-error').textContent = 'No se pudo cargar las estadísticas. Intenta nuevamente.';
+            console.error('Burnout predictivo error:', error);
+        }
     }
 
     function abrirModalEditar(button) {

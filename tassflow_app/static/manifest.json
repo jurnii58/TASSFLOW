@@ -1,0 +1,27 @@
+{
+  "name": "Tassflow Analytics",
+  "short_name": "Tassflow",
+  "description": "Sistema Predictivo de Carga Mental y Gestión Operativa",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1d2d",
+  "theme_color": "#ff9f0a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/static/img/icono-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/static/img/icono-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    },
+    {
+      "src": "/static/icono.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}

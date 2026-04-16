@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
 from datetime import datetime
 from werkzeug.security import check_password_hash, generate_password_hash 
 
@@ -54,6 +54,30 @@ def login():
             return redirect(url_for("usuario.usuario_panel")) # Los empleados mortales van aquí
 
     return render_template("login.html")
+
+@auth_bp.route("/api/mobile_login", methods=["POST"])
+def mobile_login():
+    datos = request.get_json()
+    if not datos:
+        return jsonify({"success": False, "error": "No se recibieron datos"}), 400
+
+    usuario_texto = datos.get("usuario")
+    password = datos.get("contrasena")
+
+    user = db["usuarios"].find_one({
+        "$or": [{"correo": usuario_texto}, {"nombre_usuario": usuario_texto}]
+    })
+
+    if user and check_password_hash(user["contrasena"], password):
+        return jsonify({
+            "success": True,
+            "usuario_id": str(user["_id"]),
+            "usuario": user.get("nombre_usuario", "Empleado"),
+            "rol": user["rol"]
+        }), 200
+    else:
+        return jsonify({"success": False, "error": "Credenciales incorrectas"}), 401
+
 
 @auth_bp.route("/registro_empresa", methods=["GET", "POST"])
 @limiter.limit("3 per minute") # Protegemos el registro contra bots

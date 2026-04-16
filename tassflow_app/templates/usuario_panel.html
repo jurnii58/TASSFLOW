@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <title>Mi Panel - Tassflow</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='icono.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icono.png') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     
     <style>
         /* ===================================================
@@ -180,6 +184,36 @@
     <p style="margin: 0; font-size: 13px; color: var(--text-muted);">Arrastra tus tareas hacia la derecha para completarlas.</p>
     <div class="progress-bar-bg">
         <div class="progress-bar-fill" style="width: {{ progreso }}%;"></div>
+    </div>
+</div>
+
+<!-- Sección de Sincronización Biométrica colocada justo después de la barra de progreso -->
+<div style="max-width: 1400px; margin: 20px auto; padding: 0 20px;">
+    <div style="background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 24px; padding: 22px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.3);">
+        <h3 style="color: var(--ios-orange); margin-top: 0; font-size: 18px;"><i class="fas fa-heartbeat" style="margin-right: 10px;"></i>Sincronización Biométrica</h3>
+        <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 18px;">Conecta tu cuenta de Google Fit para medir tu nivel de estrés y ritmo cardíaco real basado en tu reloj inteligente.</p>
+
+        <div id="botones-fit" style="display: flex; gap: 15px; justify-content: center; align-items: center;">
+            <!-- Botón para vincular cuenta -->
+            <button id="btn-conectar-fit" style="background: #ffffff; color: #1f1f1f; font-weight: 700; border: 2px solid #d8d8d8; padding: 12px 24px; border-radius: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; font-size: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); transition: transform 0.18s ease, box-shadow 0.18s ease;">
+                <i class="fab fa-google" style="font-size: 20px;"></i>
+                Vincular Google Fit
+            </button>
+
+            <!-- Botón para refrescar datos (solo visible cuando está vinculado) -->
+            <button id="btn-refrescar-fit" style="background: var(--ios-blue); color: white; font-weight: 700; border: none; padding: 12px 24px; border-radius: 12px; cursor: pointer; display: none; align-items: center; gap: 10px; font-size: 15px; box-shadow: 0 8px 20px rgba(10, 132, 255, 0.3); transition: transform 0.18s ease, box-shadow 0.18s ease;">
+                <i class="fas fa-sync-alt" style="font-size: 18px;"></i>
+                Actualizar Datos
+            </button>
+        </div>
+
+        <style>
+            #btn-conectar-fit:hover, #btn-refrescar-fit:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(0,0,0,0.2); }
+            #btn-conectar-fit:active, #btn-refrescar-fit:active { transform: translateY(0); box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
+            #btn-refrescar-fit:hover { box-shadow: 0 12px 24px rgba(10, 132, 255, 0.4); }
+        </style>
+
+        <p id="mensaje-fit" style="display: none; margin-top: 15px; font-weight: bold; color: var(--ios-green);"></p>
     </div>
 </div>
 
@@ -510,6 +544,101 @@
             e.target.classList.remove('active');
         }
     }
+</script>
+
+<script>
+  let clienteTokenGoogle;
+  // Guardamos solo un texto que dice "si", no el token real
+  let estaVinculado = localStorage.getItem('fit_vinculado'); 
+
+  function actualizarEstadoVinculacion() {
+    const btnConectar = document.getElementById('btn-conectar-fit');
+    const btnRefrescar = document.getElementById('btn-refrescar-fit');
+    const mensaje = document.getElementById('mensaje-fit');
+
+    if (estaVinculado === 'si') {
+      btnConectar.style.display = 'none';
+      btnRefrescar.style.display = 'inline-flex';
+      mensaje.style.display = 'block';
+      mensaje.style.color = 'var(--ios-green)';
+      mensaje.innerHTML = '<i class="fas fa-check-circle"></i> Cuenta de Google Fit vinculada';
+    } else {
+      btnConectar.style.display = 'inline-flex';
+      btnRefrescar.style.display = 'none';
+      mensaje.style.display = 'none';
+    }
+  }
+
+  window.onload = function() {
+    clienteTokenGoogle = google.accounts.oauth2.initTokenClient({
+      client_id: '712502840790-k614ed5bad3n7os6aoobhej44oa390td.apps.googleusercontent.com',
+      scope: 'https://www.googleapis.com/auth/fitness.heart_rate.read',
+      callback: (respuesta) => {
+        if (respuesta.error !== undefined) {
+          console.error("Error de Google:", respuesta);
+          return;
+        }
+        
+        // El usuario aceptó: Guardamos la bandera y mandamos el token fresco a Flask
+        localStorage.setItem('fit_vinculado', 'si');
+        actualizarEstadoVinculacion();
+        mandarTokenAFlask(respuesta.access_token);
+      }
+    });
+
+    actualizarEstadoVinculacion();
+  };
+
+  // Botón inicial
+  document.getElementById('btn-conectar-fit').onclick = function() {
+    clienteTokenGoogle.requestAccessToken();
+  };
+
+  // Botón de refrescar (Pide un token NUEVO cada vez que le das clic)
+  document.getElementById('btn-refrescar-fit').onclick = function() {
+    clienteTokenGoogle.requestAccessToken(); // Esto es mágico, lo hace sin molestar al usuario
+  };
+
+  function mandarTokenAFlask(token) {
+    const msj = document.getElementById('mensaje-fit');
+    const btnRefrescar = document.getElementById('btn-refrescar-fit');
+
+    if (btnRefrescar.style.display !== 'none') {
+      const iconoOriginal = btnRefrescar.innerHTML;
+      btnRefrescar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sincronizando...';
+      btnRefrescar.disabled = true;
+
+      setTimeout(() => {
+        btnRefrescar.innerHTML = iconoOriginal;
+        btnRefrescar.disabled = false;
+      }, 3000);
+    }
+
+    msj.style.display = "block";
+    msj.style.color = "#ff9f0a";
+    msj.innerText = "⏳ Extrayendo datos de la nube...";
+
+    fetch('/api/sincronizar_fit', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ google_access_token: token })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if(data.bpm) {
+        msj.style.color = "#34c759"; 
+        msj.innerText = ` ¡Éxito! Ritmo registrado: ${data.bpm} BPM`;
+      } else {
+        msj.style.color = "#ff3b30"; 
+        msj.innerText = ` Error: ${data.error}`;
+      }
+    })
+    .catch(err => {
+      msj.style.color = "#ff3b30";
+      msj.innerText = " Error de conexión con el servidor.";
+    });
+  }
 </script>
 
 </body>
