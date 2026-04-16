@@ -31,3 +31,7 @@ six==1.17.0
 typing_extensions==4.15.0
 Werkzeug==3.1.6
 wrapt==2.1.2
+requests
+google-auth
+google-auth-oauthlib
+google-api-python-client
